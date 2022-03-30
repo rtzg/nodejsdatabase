@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database</title>
+    <style>
+        * {
+            font-weight: 100;
+            user-select: none;
+        }
+        .test {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50%;
+            max-width: 500px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #8080c9;
+            color: white;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: none;
+            cursor: pointer;
+            width: 50%;
+            border-radius: 2px;
+        }
+        input {
+            padding: 12px 20px;
+            margin: 8px auto;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            outline: none;
+            width: 40%;
+        }
+        .get, .set {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            height: 0;
+            overflow: hidden;
+            transition: .5s cubic-bezier(.4, 2, .8, 0.8);
+        }
+        hr {
+            border: none;
+            width: 80%;
+            border-bottom: 1px solid rgb(194, 194, 194);
+        }
+        #get, #set {
+            width: 30%;
+            background-color: #80c989;
+        }
+    </style>
+</head>
+<body>
+    <div class="test">
+        <h1>Simple Data Base</h1>
+        <button id="getBtn">Get</button>
+        <div class="get">
+            <input type="text" name="index" id="indexInp" placeholder="index">
+            <button id="get">Get</button>
+        </div>
+        <hr>
+        <button id="setBtn">Set</button>
+        <div class="set">
+            <input type="text" name="index" id="SindexInp" placeholder="index">
+            <input type="text" name="value" id="valueInp" placeholder="value">
+            <button id="set">Set</button>
+        </div>
+    </div>
+    <script>
+        var openGet = false;
+        var openSet = false;
+        document.getElementById('getBtn').addEventListener('click', function() {
+            document.querySelector('.get').style.height = '120px';
+            document.querySelector('.set').style.height = '0px';
+        });
+        document.getElementById('setBtn').addEventListener('click', function() {
+            document.querySelector('.set').style.height = '176px';
+            document.querySelector('.get').style.height = '0px';
+        });
+        document.getElementById('get').addEventListener('click', function() {
+            location.href = '/get?' + document.getElementById('indexInp').value;
+        });
+        document.getElementById('set').addEventListener('click', function() {
+            location.href = '/set?' + document.getElementById('SindexInp').value + '=' + document.getElementById('valueInp').value;
+        });
+    </script>
+</body>
+</html>
