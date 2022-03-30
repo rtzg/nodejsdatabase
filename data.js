@@ -10,53 +10,62 @@ const app = express();
 
 var json;
 app.get('/get', function(req, res) {
-    try {
-        app.set('json spaces', 40);
-        fs.readFile('data.json', function(err, data) {
+    var search = decodeURIComponent(req.url.split('?')[1]);
+    if (search == undefined || search == '' || search == null || search.includes(' ') || search == '&' || search.includes('"') || search.includes("'")) {
+        res.status(400).send('400 : Bad Request<br>Unexpected character in query string >>> ' + search);
+    } else {
+        try {
+            app.set('json spaces', 40);
+            fs.readFile('data.json', function(err, data) {
+                res.setHeader('Content-Type', 'application/json');
+                var search = req.url.split('?')[1];
+                json = JSON.parse(data)['data'][search];
+                res.json(JSON.parse(JSON.stringify(json) === undefined ? `{"error":"Missing or unknown index"}` : '{"data":' + JSON.stringify(json) + '}'));
+                console.log(json);
+                return res.json();
+            });
+        } catch (err) {
             res.setHeader('Content-Type', 'application/json');
-            var search = req.url.split('?')[1];
-            json = JSON.parse(data)['data'][search];
-            res.json(JSON.parse(JSON.stringify(json) === undefined ? `{"error":"Missing or unknown index"}` : '{"data":' + JSON.stringify(json) + '}'));
-            console.log(json);
-            return res.json();
-        });
-    } catch (err) {
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({error: e}));
+            res.end(JSON.stringify({error: e}));
+        }
     }
 });
 
 app.get('/set', function(req, res) {
-    try{
-        var search = req.url.split('?')[1];
-        var name = search.split('=')[0];
-        var value = search.split('=')[1];
-        var orginData;
-        var FData = {};
-        if(name!=undefined && value!=undefined){
-            fs.readFile('data.json', function(err, data) {
-                orginData = JSON.parse(data);
-                FData[name] = decodeURIComponent(value);
-                orginData['data'][name] = FData[name];
-                orginData = decodeURIComponent(JSON.stringify(orginData));
-                res.setHeader('Content-Type', 'application/json');
-                res.write(JSON.stringify(FData));
-                fs.writeFile('data.json', orginData, function(err) {
-                    if(err != null) {
-                        return console.log(err);
-                    }
-                    
+    var search = decodeURIComponent(req.url.split('?')[1]);
+    if (search == undefined || search == '' || search == null || search.includes(' ') || search == '&' || search.includes('"') || search.includes("'")) {
+        res.status(400).send('400 : Bad Request<br>Unexpected character in query string >>> ' + search);
+    } else {
+        try{
+            var name = search.split('=')[0];
+            var value = search.split('=')[1];
+            var orginData;
+            var FData = {};
+            if(name!=undefined && value!=undefined){
+                fs.readFile('data.json', function(err, data) {
+                    orginData = JSON.parse(data);
+                    FData[name] = decodeURIComponent(value);
+                    orginData['data'][name] = FData[name];
+                    orginData = decodeURIComponent(JSON.stringify(orginData));
+                    res.setHeader('Content-Type', 'application/json');
+                    res.write(JSON.stringify(FData));
+                    fs.writeFile('data.json', orginData, function(err) {
+                        if(err != null) {
+                            return console.log(err);
+                        }
+                        return res.end();
+                    });
                 });
-            });
-        }
-        else {
+            }
+            else {
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({error: 'Missing value or name'}));
+            }
+        } catch (e) {
             res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({error: 'Missing value or name'}));
+            res.end(JSON.stringify({error: e}));
+            return res.end();
         }
-    } catch (e) {
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({error: e}));
-        return res.end();
     }
 });
 
