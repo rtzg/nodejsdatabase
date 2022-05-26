@@ -3,6 +3,7 @@ const fs = require('fs');
 const http = require('http');
 const express = require('express');
 const app = express();
+const { networkInterfaces } = require('os');
 
 // when user get /get?x return data.json["data"][x] in json format
 // when user get /set?x=y set data.json["data"][x] = y, and return data.json["data"][x] in json format
@@ -26,7 +27,7 @@ app.get('/get', function(req, res) {
             });
         } catch (err) {
             res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({error: e}));
+            res.end(JSON.stringify({ error: e }));
         }
     }
 });
@@ -36,12 +37,12 @@ app.get('/set', function(req, res) {
     if (search == undefined || search == '' || search == null || search.includes(' ') || search == '&' || search.includes('"') || search.includes("'")) {
         res.status(400).send('400 : Bad Request<br>Unexpected character in query string >>> ' + search);
     } else {
-        try{
+        try {
             var name = search.split('=')[0];
             var value = search.split('=')[1];
             var orginData;
             var FData = {};
-            if(name!=undefined && value!=undefined){
+            if (name != undefined && value != undefined) {
                 fs.readFile('data.json', function(err, data) {
                     orginData = JSON.parse(data);
                     FData[name] = decodeURIComponent(value);
@@ -50,20 +51,19 @@ app.get('/set', function(req, res) {
                     res.setHeader('Content-Type', 'application/json');
                     res.write(JSON.stringify(FData));
                     fs.writeFile('data.json', orginData, function(err) {
-                        if(err != null) {
+                        if (err != null) {
                             return console.log(err);
                         }
                         return res.end();
                     });
                 });
-            }
-            else {
+            } else {
                 res.setHeader('Content-Type', 'application/json');
-                res.end(JSON.stringify({error: 'Missing value or name'}));
+                res.end(JSON.stringify({ error: 'Missing value or name' }));
             }
         } catch (e) {
             res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({error: e}));
+            res.end(JSON.stringify({ error: e }));
             return res.end();
         }
     }
@@ -72,6 +72,27 @@ app.get('/set', function(req, res) {
 app.get('/', function(req, res) {
     res.sendFile(__dirname + '/index.html');
 });
+
+app.get('/ip', function(req, res) {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    const nets = networkInterfaces();
+    const results = Object.create(null); // Or just '{}', an empty object
+
+    for (const name of Object.keys(nets)) {
+        for (const net of nets[name]) {
+            // Skip over non-IPv4 and internal (i.e. 127.0.0.1) addresses
+            // 'IPv4' is in Node <= 17, from 18 it's a number 4 or 6
+            const familyV4Value = typeof net.family === 'string' ? 'IPv4' : 4
+            if (net.family === familyV4Value && !net.internal) {
+                if (!results[name]) {
+                    results[name] = [];
+                }
+                results[name].push(net.address);
+            }
+        }
+    }
+    res.end(JSON.stringify(results));
+})
 
 // create server.
 http.createServer(app).listen(port, function() {
